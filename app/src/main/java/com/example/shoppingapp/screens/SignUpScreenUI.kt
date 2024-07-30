@@ -83,7 +83,9 @@ fun SignUpScreenUI() {
                     .fillMaxWidth()
                     .padding(vertical = 30.dp))
             }
+          Box(modifier = Modifier.fillMaxSize()){
 
+          }
 
         }
     }
