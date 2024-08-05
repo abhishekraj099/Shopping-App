@@ -2,33 +2,37 @@ package com.example.shoppingapp.navigation
 
 import kotlinx.serialization.Serializable
 
+sealed class SubNavigation{
+    @Serializable
+    object LoginSignUpScreen:SubNavigation()
+
+    @Serializable
+    object MainHomeScreen:SubNavigation()
+}
 
 sealed class Routes {
+    @Serializable
+    object LoginScreen
 
     @Serializable
-    object LoginScreen : Routes()
+    object SingUpScreen
 
     @Serializable
-    object SignUpScreen : Routes()
-
-
-    @Serializable
-    object ProfileScreen : Routes()
-
+    object ProfileScreen
 
     @Serializable
-    object HomeScreen : Routes()
+    object HomeScreen
 
     @Serializable
-    object WishlistScreen : Routes()
+    object WishListScreen
 
     @Serializable
-    object CartScreen : Routes()
+    object CartScreen
 
     @Serializable
-    object ProductDetailScreen : Routes()
+    object ProductDetailsScreen
 
     @Serializable
-    object CheckOutScreen : Routes()
+    object CheckoutScreen
 
 }

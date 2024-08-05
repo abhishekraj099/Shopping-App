@@ -1,8 +1,13 @@
 package com.example.shoppingapp.domain.models
 
-data class UserData(
-    val name: String,
-    val email: String,
-    val password: String,
-    var phone: String
-)
+
+data class UserData (
+    val name : String="",
+    val email : String="",
+    val password : String="",
+    val phoneNumber : String="",
+
+    )
+
+
+data class UserDataParent(val nodeId : String="", val userData: UserData=UserData())
