@@ -2,13 +2,12 @@ package com.example.shoppingapp.domain.useCase
 
 import com.example.shoppingapp.common.ResultState
 import com.example.shoppingapp.domain.models.UserDataParent
-import com.example.shoppingapp.domain.repo.Repo
+import com.example.shoppingapp.domain.repo.Repository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetUserByIdUseCase @Inject constructor(val repo: Repo) {
-    fun getUserById(uId: String) : Flow<ResultState<UserDataParent>> {
-        return repo.getUserByUId(uId)
-
+class GetUserByIdUserCase @Inject constructor(private val repository: Repository) {
+    fun getUserById(uid: String) : Flow<ResultState<UserDataParent>> {
+        return repository.getUserByUID(uid)
     }
 }

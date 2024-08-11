@@ -4,10 +4,10 @@ import kotlinx.serialization.Serializable
 
 sealed class SubNavigation{
     @Serializable
-    object LoginSignUpScreen:SubNavigation()
+    object LoginSignUpScreen
 
     @Serializable
-    object MainHomeScreen:SubNavigation()
+    object MainHomeScreen
 }
 
 sealed class Routes {
@@ -15,7 +15,7 @@ sealed class Routes {
     object LoginScreen
 
     @Serializable
-    object SingUpScreen
+    object SignUpScreen
 
     @Serializable
     object ProfileScreen
@@ -34,5 +34,8 @@ sealed class Routes {
 
     @Serializable
     object CheckoutScreen
+
+    @Serializable
+    object OnBoardingScreen
 
 }
