@@ -70,233 +70,140 @@ fun SignUpScreenUI(
     navController: NavHostController
 ) {
     var name by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state = viewModel.uiState.collectAsState()
 
-    val primaryColor = Color(0xFF42A5F5)
-    val backgroundColor = Color(0xFFF5F5F5)
-
-    LaunchedEffect(state.success) {
-        if (state.success != null) {
-            navController.navigate(SubNavigation.MainHomeScreen)
-            viewModel.resetState()
+    if (state.value.isLoading) {
+        // Show loading
+        CircularProgressIndicator()
+    } else if (state.value.error.isNullOrEmpty().not()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = state.value.error.toString())
         }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-    ) {
-        SignUpContent(
-            name = name,
-            email = email,
-            phone = phone,
-            password = password,
-            onNameChange = { name = it },
-            onEmailChange = { email = it },
-            onPhoneChange = { phone = it },
-            onPasswordChange = { password = it },
-            onSignUp = {
-                val userData = UserData(name = name, email = email, password = password, phone = phone)
-                viewModel.createUser(userData)
-            },
-            onNavigateToLogin = { navController.navigate(Routes.LoginScreen) },
-            primaryColor = primaryColor,
-            isLoading = state.isLoading,
-            error = state.error
-        )
-    }
-}
-
-@Composable
-fun SignUpContent(
-    name: String,
-    email: String,
-    phone: String,
-    password: String,
-    onNameChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
-    onPhoneChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onSignUp: () -> Unit,
-    onNavigateToLogin: () -> Unit,
-    primaryColor: Color,
-    isLoading: Boolean,
-    error: String?
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        SignUpHeader()
-        SignUpForm(
-            name = name,
-            email = email,
-            phone = phone,
-            password = password,
-            onNameChange = onNameChange,
-            onEmailChange = onEmailChange,
-            onPhoneChange = onPhoneChange,
-            onPasswordChange = onPasswordChange,
-            onSignUp = onSignUp,
-            primaryColor = primaryColor,
-            isLoading = isLoading
-        )
-        if (error != null) {
-            Text(text = error, color = Color.Red, style = MaterialTheme.typography.bodyMedium)
+    } else if (state.value.success.isNullOrEmpty().not()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            AlertDialog(onDismissRequest = { }, confirmButton = {
+                Button(onClick = { navController.navigate(SubNavigation.MainHomeScreen) }) {
+                    Text(text = "Go to home")
+                }
+            }, title = { Text(text = "Congratulations Login Successful") })
         }
-        SignUpSocialOptions()
-        SignUpLoginOption(onNavigateToLogin = onNavigateToLogin)
-    }
-}
-
-@Composable
-fun SignUpHeader() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = Icons.Default.PersonAdd,
-            contentDescription = "Sign Up",
-            modifier = Modifier.size(64.dp),
-            tint = Color(0xFF42A5F5)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Create an Account",
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = Color(0xFF333333)
-        )
-    }
-}
-
-@Composable
-fun SignUpForm(
-    name: String,
-    email: String,
-    phone: String,
-    password: String,
-    onNameChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
-    onPhoneChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onSignUp: () -> Unit,
-    primaryColor: Color,
-    isLoading: Boolean
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        SignUpTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = "Full Name",
-            icon = Icons.Default.Person
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        SignUpTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = "Email",
-            icon = Icons.Default.Email
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        SignUpTextField(
-            value = phone,
-            onValueChange = onPhoneChange,
-            label = "Phone Number",
-            icon = Icons.Default.Phone
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        SignUpTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            label = "Password",
-            icon = Icons.Default.Lock,
-            isPassword = true
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = onSignUp,
+    } else {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !isLoading
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-            } else {
+
+            Text(
+                text = "Sign-Up",
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            )
+
+            Spacer(modifier = Modifier.height(56.dp))
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Phone Number Or Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val userData =
+                        UserData(name = name, email = email, password = password, phone = phone)
+                    viewModel.createUser(userData)
+                    name = ""
+                    email = ""
+                    password = ""
+                    phone = ""
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF42A5F5))
+            ) {
                 Text(text = "Sign Up", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(text = "— Or Sign Up with —")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                SocialLoginButton(imageResId = R.drawable.ic_facebook) // Replace with actual Facebook icon
+                SocialLoginButton(imageResId = R.drawable.ic_google)   // Replace with actual Google icon
+                SocialLoginButton(imageResId = R.drawable.ic_apple)    // Replace with actual Apple icon
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            TextButton(onClick = { navController.navigate(Routes.LoginScreen) }) {
+                Text(
+                    text = "Already a User?\nLOG IN",
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }
-}
 
-@Composable
-fun SignUpTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    icon: ImageVector,
-    isPassword: Boolean = false
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        leadingIcon = { Icon(icon, contentDescription = null) },
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default
-    )
-}
-
-@Composable
-fun SignUpSocialOptions() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "— Or Sign Up with —", color = Color.Gray)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            SignUpSocialButton(imageResId = R.drawable.ic_facebook)
-            SignUpSocialButton(imageResId = R.drawable.ic_google)
-            SignUpSocialButton(imageResId = R.drawable.ic_apple)
-        }
-    }
-}
-
-@Composable
-fun SignUpSocialButton(imageResId: Int) {
-    IconButton(
-        onClick = { /* Handle social sign up */ },
-        modifier = Modifier
-            .size(48.dp)
-            .background(Color.White, CircleShape)
-            .border(1.dp, Color.LightGray, CircleShape)
-    ) {
-        Image(
-            painter = painterResource(id = imageResId),
-            contentDescription = "Social Sign Up",
-            modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Composable
-fun SignUpLoginOption(onNavigateToLogin: () -> Unit) {
-    TextButton(onClick = onNavigateToLogin) {
-        Text(
-            text = "Already have an account? Log In",
-            fontWeight = FontWeight.Medium,
-            color = Color.Gray
-        )
-    }
-}// Keep the other functions (SignUpTextField, SignUpSocialOptions, SignUpSocialButton, SignUpLoginOption) as they were
+}//Keep the other functions (SignUpTextField, SignUpSocialOptions, SignUpSocialButton, SignUpLoginOption) as they were

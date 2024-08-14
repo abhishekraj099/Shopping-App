@@ -3,6 +3,7 @@ package com.example.shoppingapp.data.repo
 
 import com.example.shoppingapp.common.ResultState
 import com.example.shoppingapp.common.USER_COLLECTION
+import com.example.shoppingapp.domain.models.CategoryModel
 import com.example.shoppingapp.domain.models.ProductDataModels
 import com.example.shoppingapp.domain.models.UserData
 import com.example.shoppingapp.domain.models.UserDataParent
@@ -98,6 +99,25 @@ class RepositoryImpl @Inject constructor(
             }
         }
 
+    override fun getCategories(): Flow<ResultState<List<CategoryModel>>> = callbackFlow{
+        trySend(ResultState.Loading)
+
+        val listenerRegistration = firebaseFirestore.collection("categories")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(ResultState.Error(error.message.toString()))
+                }
+
+                if (snapshot != null) {
+                    val categories = snapshot.toObjects(CategoryModel::class.java)
+                    trySend(ResultState.Success(categories))
+                }
+            }
+        awaitClose {
+            listenerRegistration.remove()
+        }
+    }
+
     override fun getAllProducts(): Flow<ResultState<List<ProductDataModels>>> = callbackFlow {
         trySend(ResultState.Loading)
         val listenerRegistration = firebaseFirestore.collection("products")
@@ -115,4 +135,8 @@ class RepositoryImpl @Inject constructor(
             listenerRegistration.remove()
         }
     }
+
+
 }
+
+

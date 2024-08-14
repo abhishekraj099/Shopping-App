@@ -1,5 +1,6 @@
 package com.example.shoppingapp.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,10 +39,34 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.shoppingapp.screens.HomeScreenUI
+
+
 import com.example.shoppingapp.screens.LoginScreenUI
-import com.example.shoppingapp.screens.ProfileScreenUI
+
 import com.example.shoppingapp.screens.SignUpScreenUI
 import com.google.firebase.auth.FirebaseAuth
+
+
+
+
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import com.example.shoppingapp.screens.*
+
+
+
+
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 @Composable
 fun App(firebaseAuth: FirebaseAuth) {
@@ -82,8 +107,7 @@ fun App(firebaseAuth: FirebaseAuth) {
 
                 navigation<SubNavigation.LoginSignUpScreen>(startDestination = Routes.OnBoardingScreen) {
                     composable<Routes.OnBoardingScreen> {
-//                        OnboardingScreenUI(navController = navController)
-                        Text(text = "Onboarding Screen")
+                        OnboardingScreenUI(navController = navController)
                     }
 
                     composable<Routes.LoginScreen> {
@@ -106,13 +130,11 @@ fun App(firebaseAuth: FirebaseAuth) {
                     }
 
                     composable<Routes.WishListScreen> {
-//                        WishListScreenUI(navController = navController)
-                        Text(text = "WishList Screen")
+                        WishListScreenUI(navController = navController)
                     }
 
                     composable<Routes.CartScreen> {
-//                        CartScreenUI(navController = navController)
-                        Text(text = "Cart Screen")
+                        CartScreenUI(navController = navController)
                     }
 
                 }
@@ -197,4 +219,3 @@ fun RowScope.BottomNavItem(
 
 
 data class BottomBarItem(val name: String, val icon: ImageVector)
-

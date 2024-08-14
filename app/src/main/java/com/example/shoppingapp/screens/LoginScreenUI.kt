@@ -73,6 +73,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 
 
+import androidx.compose.foundation.Image
+
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+
+
 @Composable
 fun LoginScreenUI(
     viewModel: ShoppingAppViewModel = hiltViewModel(),
@@ -80,165 +91,125 @@ fun LoginScreenUI(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state = viewModel.uiState.collectAsStateWithLifecycle()
+    val showDialog = remember { mutableStateOf(false) }
 
-    val primaryColor = Color(0xFF42A5F5)
-    val backgroundColor = Color(0xFFF5F5F5)
-
-    LaunchedEffect(state.isLoading) {
-        if (!state.isLoading) {
-            if (state.error != null) {
-                // Show error message
-                // You might want to implement a Snackbar or Toast here
-            } else if (state.success != null) {
-                // Navigate to home screen
-                navController.navigate(SubNavigation.MainHomeScreen)
-            }
-            // Reset the state after showing error or success
-            viewModel.resetState()
+    if (state.value.isLoading) {
+        // Show loading
+        CircularProgressIndicator()
+    } else if (state.value.error.isNullOrEmpty().not()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = state.value.error.toString())
         }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        LoginHeader()
-        LoginForm(
-            email = email,
-            password = password,
-            onEmailChange = { email = it },
-            onPasswordChange = { password = it },
-            onLoginClick = {
-                val userData = UserData(email = email, password = password, name = "", phone = "")
-                viewModel.loginUser(userData)
-            },
-            primaryColor = primaryColor,
-            isLoading = state.isLoading
-        )
-        SocialLoginOptions()
-        SignUpOption(navController = navController)
-    }
-}
-
-@Composable
-fun LoginHeader() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = painterResource(id = R.drawable.app_logo), // Replace with your app logo
-            contentDescription = "App Logo",
-            modifier = Modifier.size(100.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Welcome Back",
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp
-        )
-    }
-}
-
-@Composable
-fun LoginForm(
-    email: String,
-    password: String,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onLoginClick: () -> Unit,
-    primaryColor: Color,
-    isLoading: Boolean
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(8.dp),
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Forgot Password?",
+    } else if (state.value.success.isNullOrEmpty().not()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            AlertDialog(onDismissRequest = { }, confirmButton = {
+                Button(onClick = { navController.navigate(SubNavigation.MainHomeScreen) }) {
+                    Text(text = "Go to home")
+                }
+            }, title = { Text(text = "Congratulations Login Successful") })
+        }
+    } else {
+        Column(
             modifier = Modifier
-                .align(Alignment.End)
-                .clickable { /* Handle forgot password */ },
-            color = primaryColor
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = onLoginClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-            shape = RoundedCornerShape(8.dp),
-            enabled = !isLoading
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-            } else {
+
+            Text(
+                text = "Log-In",
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            )
+
+            Spacer(modifier = Modifier.height(150.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Phone Number Or Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val userData = UserData(email = email, password = password, name = "", phone = "")
+                    viewModel.loginUser(userData)
+                    email = ""
+                    password = ""
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF42A5F5))
+            ) {
                 Text(text = "Log in", color = Color.White)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(text = "— Or Login with —")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                SocialLoginButton(imageResId = R.drawable.ic_facebook) // Replace with actual Facebook icon
+                SocialLoginButton(imageResId = R.drawable.ic_google)   // Replace with actual Google icon
+                SocialLoginButton(imageResId = R.drawable.ic_apple)    // Replace with actual Apple icon
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            TextButton(onClick = { navController.navigate(Routes.SignUpScreen) }) {
+                Text(
+                    text = "Are You a New User?\nSIGN UP",
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
         }
     }
 }
 
-@Composable
-fun SocialLoginOptions() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "— Or Login with —", color = Color.Gray)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            SocialLoginButton(imageResId = R.drawable.ic_facebook)
-            SocialLoginButton(imageResId = R.drawable.ic_google)
-            SocialLoginButton(imageResId = R.drawable.ic_apple)
-        }
-    }
-}
 
 @Composable
 fun SocialLoginButton(imageResId: Int) {
-    IconButton(
-        onClick = { /* Handle social login */ },
+    Button(
+        onClick = { /*TODO*/ },
         modifier = Modifier
-            .size(48.dp)
-            .background(Color.White, shape = CircleShape)
-            .border(1.dp, Color.LightGray, shape = CircleShape)
+            .size(46.dp),
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        contentPadding = PaddingValues(0.dp)
     ) {
         Image(
-            painter = painterResource(id = imageResId),
-            contentDescription = "Social Login",
-            modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Composable
-fun SignUpOption(navController: NavHostController) {
-    TextButton(onClick = { navController.navigate(Routes.SignUpScreen) }) {
-        Text(
-            text = "New user? Sign up here",
-            fontWeight = FontWeight.Medium,
-            color = Color.Gray
+            painter = rememberAsyncImagePainter(model = imageResId),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

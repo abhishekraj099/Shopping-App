@@ -1,5 +1,13 @@
 package com.example.shoppingapp.screens
 
+
+// Define the Dress data class
+
+
+
+import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,227 +21,403 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Voicemail
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.shoppingapp.R
 import com.example.shoppingapp.domain.models.ProductDataModels
 import com.example.shoppingapp.viewModels.ShoppingAppViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 
+
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.foundation.lazy.grid.items
+
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.graphics.Brush
+
+import androidx.compose.ui.text.style.TextOverflow
+import com.google.accompanist.pager.PagerState
+
+
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeScreenUI(
     viewModel: ShoppingAppViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    val productUiState = viewModel.productUiState.collectAsStateWithLifecycle()
+    val productUiState by viewModel.productUiState.collectAsStateWithLifecycle()
+    val pagerState = rememberPagerState()
+    val uniqueCategories by viewModel.uniqueCategories.collectAsStateWithLifecycle()
+    val allCategories by viewModel.getAllCategories.collectAsStateWithLifecycle()
+    val usingCategories = allCategories.categoryList
+    val bannerImages = listOf(
+        R.drawable.banner1,
+        R.drawable.banner2,
+        R.drawable.banner3
+    )
+    val products = productUiState.productList
+    val selectedCategory = remember { mutableStateOf("All") }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .padding(16.dp)
     ) {
-        HomeAppBar()
-        CategoryHeader()
+        item {
+            // Search Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = { /* Handle search input here */ },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search Icon"
+                        )
+                    },
+                    placeholder = { Text("Search") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFFF5F5F5),
+                        focusedContainerColor = Color(0xFFF5F5F5),
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Transparent
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
 
-        when {
-            productUiState.value.isLoading -> {
-                LoadingIndicator()
-            }
-            productUiState.value.error != null -> {
-                ErrorMessage(productUiState.value.error.toString())
-            }
-            !productUiState.value.productList.isNullOrEmpty() -> {
-                ProductList(productUiState.value.productList!!)
-            }
-            else -> {
-                EmptyProductList()
+                IconButton(onClick = { /* Handle voice search action here */ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Voicemail,
+                        contentDescription = "Voice Search",
+                        tint = Color(0xFF808080)
+                    )
+                }
             }
         }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeAppBar() {
-    TopAppBar(
-        title = { Text("Shopping App", style = MaterialTheme.typography.titleLarge) },
-        actions = {
-            IconButton(onClick = { /* TODO: Implement search */ }) {
-                Icon(Icons.Default.Search, contentDescription = "Search")
-            }
-            IconButton(onClick = { /* TODO: Implement cart */ }) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
-            }
-        },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
-            containerColor = Color(0xFF42A5F5),
-            titleContentColor = Color.White,
-            actionIconContentColor = Color.White
-        )
-    )
-}
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-@Composable
-fun CategoryHeader() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Categories",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-        )
-        TextButton(onClick = { /* TODO: Implement see more */ }) {
-            Text(
-                text = "See More",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF42A5F5)
+
+        // Image Slider (New Collection)
+        item {
+            HorizontalPager(
+                count = bannerImages.size,
+                state = pagerState, // Use the pagerState
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            ) { page ->
+                // Our page content, displaying a random image
+                AsyncImage(
+                    model = bannerImages[page],
+                    contentDescription = "Banner Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            // Pager Indicators
+            DotsIndicator(
+                totalDots = bannerImages.size,
+                currentPage = pagerState.currentPage,
+                selectedColor = Color.DarkGray,
+                unSelectedColor = Color.LightGray
             )
         }
-    }
-}
 
-@Composable
-fun LoadingIndicator() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(color = Color(0xFF42A5F5))
-    }
-}
-
-@Composable
-fun ErrorMessage(error: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = error,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun ProductList(products: List<ProductDataModels>) {
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(products) { product ->
-            ProductItem(product)
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
         }
+
+
+        item {
+            // Category Section
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Category",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(uniqueCategories) { category ->
+                        CategoryItem(
+                            category = category,
+                            isSelected = category == selectedCategory.value,
+                            onSelect = { selectedCategory.value = it }
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            // Flash Sale Section
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Flash Sale Closing In",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+
+                    Text(
+                        text = "2 : 12 : 56", // Replace with your actual countdown timer
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color.Red
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(uniqueCategories) { category ->
+                        FilterChip(
+                            category = category,
+                            isSelected = category == selectedCategory.value,
+                            onSelect = { selectedCategory.value = it })
+                    }
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+
+        item {
+            val filteredProducts = if (selectedCategory.value == "All") {
+                products
+            } else {
+                products?.filter { it.category == selectedCategory.value }
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.height(500.dp)
+            ) {
+                filteredProducts?.let { list ->
+                    items(list) { product ->
+                        ProductCard(product = product)
+                    }
+                }
+            }
+        }
+
     }
 }
 
+
+// Category Item Composable
 @Composable
-fun EmptyProductList() {
-    Box(
+fun CategoryItem(category: String, isSelected: Boolean, onSelect: (String) -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        OutlinedButton(
+            onClick = { onSelect(category) },
+            modifier = Modifier
+                .size(80.dp)
+                .padding(4.dp),
+            shape = CircleShape,
+            border = BorderStroke(1.dp, if (isSelected) Color.Blue else Color.LightGray),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = if (isSelected) Color.Blue else Color.White
+            ),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            AsyncImage(
+                model = R.drawable.ic_launcher_foreground, // Replace with actual category Image
+                contentDescription = category,
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(8.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = category, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(),textAlign = TextAlign.Center)
+    }
+}
+
+// Filter Chip Composable
+@Composable
+fun FilterChip(category: String, isSelected: Boolean, onSelect: (String) -> Unit) {
+    Button(
+        onClick = { onSelect(category) },
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .wrapContentSize()
+            .padding(4.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelected) Color(0xFFADD8E6) else Color.White
+        )
     ) {
         Text(
-            text = "No products available",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = Color.Gray
+            text = category,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Black
         )
     }
 }
 
+// Product Card Composable
 @Composable
-fun ProductItem(product: ProductDataModels) {
+fun ProductCard(product: ProductDataModels) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp)
+            .fillMaxWidth()
+            .height(250.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Product Image
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = product.name,
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .fillMaxWidth()
+                    .height(150.dp),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
                 Text(
                     text = product.name,
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Price: $${product.price}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF42A5F5)
-                )
+                Text(text = "₹${product.price}", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Category: ${product.category}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Date: ${formatDate(product.date)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "4.4", fontSize = 12.sp)
+                }
             }
         }
     }
 }
 
-fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    return sdf.format(Date(timestamp))
+@Composable
+fun DotsIndicator(
+    totalDots: Int,
+    currentPage: Int,
+    selectedColor: Color,
+    unSelectedColor: Color,
+    indicatorSize: Dp = 8.dp,
+    spacing: Dp = 4.dp
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp), // Add horizontal padding if needed
+        horizontalArrangement = Arrangement.Center
+    ) {
+        for (index in 0 until totalDots) {
+            Box(
+                modifier = Modifier
+                    .size(indicatorSize)
+                    .clip(CircleShape)
+                    .background(color = if (index == currentPage) selectedColor else unSelectedColor)
+            )
+            if (index != totalDots - 1) {
+                Spacer(modifier = Modifier.width(spacing))
+            }
+        }
+    }
 }
+
